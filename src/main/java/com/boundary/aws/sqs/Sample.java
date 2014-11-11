@@ -68,60 +68,32 @@ public class Sample {
 
 		try {
 			// Create a queue
-			System.out.printf("Creating a new SQS queue called %s.\n",queueName);
+			System.out.printf("Creating queue: %s.\n",queueName);
 			CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
 			String myQueueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
 
-			// List queues
-			System.out.println("Listing all queues in your account.\n");
-			for (String queueUrl : sqs.listQueues().getQueueUrls()) {
-				System.out.println("  QueueUrl: " + queueUrl);
-			}
-			System.out.println();
+			int messageCount = 100;
 
-			int messageCount = 10;
-
-			// Send a message
+			// Send a messages
 			for (int count = 1; count <= messageCount ; count++) {
 				System.out.printf("Sending message %3d to %s.\n",count, queueName);
 				sqs.sendMessage(new SendMessageRequest(myQueueUrl, new Date() + ": This is my message text."));
-				sqs.sendMessage(new SendMessageRequest(myQueueUrl, "test"));
 			}
-			
 
-			System.out.printf("Receiving messages from %s.\n", queueName);
 			for (int count = 1; count <= messageCount ; count++) {
 
 				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(myQueueUrl);
 				List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
-				for (Message msgReceived : messages) {
-					System.out.println("  Message");
-					System.out.println("    MessageId:     " + msgReceived.getMessageId());
-					System.out.println("    ReceiptHandle: " + msgReceived.getReceiptHandle());
-					System.out.println("    MD5OfBody:     " + msgReceived.getMD5OfBody());
-					System.out.println("    Body:          " + msgReceived.getBody());
-					for (Entry<String, String> entry : msgReceived.getAttributes().entrySet()) {
-						System.out.println("  Attribute");
-						System.out.println("    Name:  " + entry.getKey());
-						System.out.println("    Value: " + entry.getValue());
-					}
-				}
-			}
-
-				System.out.println();
-			
-			for (int count = 1; count <= messageCount ; count++) {
-				ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(myQueueUrl);
-				List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
-
-				for (Message msgDelete : messages) {
-					System.out.printf("Deleting a message %s from %s.\n",msgDelete.getMessageId(), queueName);
-					String messageRecieptHandle = msgDelete.getReceiptHandle();
+				for (Message msg : messages) {
+					System.out.printf("Received message: %s queue: %s body: %s\n",
+							msg.getMessageId(),queueName,msg.getBody());
+					System.out.printf("Deleting message: %s queue: %s\n",msg.getMessageId(), queueName);
+					String messageRecieptHandle = msg.getReceiptHandle();
 					sqs.deleteMessage(new DeleteMessageRequest(myQueueUrl,messageRecieptHandle));
 				}
 			}
 
-			System.out.printf("Deleting %s queue.\n",queueName);
+			System.out.printf("Deleting queue: %s\n",queueName);
 			sqs.deleteQueue(new DeleteQueueRequest(myQueueUrl));
 			
 		} catch (AmazonServiceException ase) {
@@ -140,7 +112,7 @@ public class Sample {
 							+ "being able to access the network.");
 			System.out.println("Error Message: " + ace.getMessage());
 		}
-
-		Thread.sleep(61000);
+		
+		sqs.shutdown();
 	}
 }
