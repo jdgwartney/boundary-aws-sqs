@@ -6,7 +6,7 @@
   <artifactId>boundary-aws-sqs</artifactId>
   <packaging>jar</packaging>
   <version>01.00.00</version>
-  <name>boundary_aws_kinesis</name>
+  <name>boundary_aws_sqs</name>
   <description>Example code to excersize the AWS Simple Queing Service (SQS) service</description>
   <url>https://github.com/boundary/boundary-plugin-aws-sqs</url>
   <properties>
